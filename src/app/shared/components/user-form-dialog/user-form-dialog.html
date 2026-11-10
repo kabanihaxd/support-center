@@ -1,0 +1,124 @@
+<app-modal [open]="open()" [title]="title()" (closed)="closed.emit()">
+  <form class="form-grid" [formRoot]="form" [attr.aria-label]="title()">
+    @if (error(); as message) {
+      <div class="alert" role="alert">
+        <app-icon name="circle-alert" [size]="16" />
+        {{ message }}
+      </div>
+    }
+
+    <div class="field">
+      <label class="field-label" for="u-name">Full name</label>
+      <input
+        id="u-name"
+        class="input"
+        autocomplete="name"
+        [formField]="form.name"
+        aria-describedby="u-name-error"
+        [attr.aria-invalid]="form.name().touched() && form.name().invalid()"
+      />
+      <app-field-errors id="u-name-error" [state]="form.name()" />
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="u-email">Email</label>
+      @if (isCreate()) {
+        <input
+          id="u-email"
+          class="input"
+          type="email"
+          autocomplete="off"
+          [formField]="form.email"
+          aria-describedby="u-email-error"
+          [attr.aria-invalid]="form.email().touched() && form.email().invalid()"
+        />
+        <app-field-errors id="u-email-error" [state]="form.email()" />
+      } @else {
+        <input id="u-email" class="input" type="email" [value]="model().email" readonly aria-describedby="u-email-hint" />
+        <span id="u-email-hint" class="field-hint">Email is used to sign in and can't be changed here.</span>
+      }
+    </div>
+
+    @if (!isCustomer()) {
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="u-title">Job title</label>
+          <input
+            id="u-title"
+            class="input"
+            placeholder="e.g. L1 Support Specialist"
+            [formField]="form.jobTitle"
+            aria-describedby="u-title-error"
+            [attr.aria-invalid]="form.jobTitle().touched() && form.jobTitle().invalid()"
+          />
+          <app-field-errors id="u-title-error" [state]="form.jobTitle()" />
+        </div>
+        @if (isCreate() || canChangeRole()) {
+          <div class="field">
+            <label class="field-label" for="u-role">Role</label>
+            <select id="u-role" class="select" [formField]="form.role">
+              <option value="agent">Agent</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="field">
+        <label class="field-label" for="u-company">Company</label>
+        <input
+          id="u-company"
+          class="input"
+          autocomplete="organization"
+          [formField]="form.company"
+          aria-describedby="u-company-error"
+          [attr.aria-invalid]="form.company().touched() && form.company().invalid()"
+        />
+        <app-field-errors id="u-company-error" [state]="form.company()" />
+      </div>
+    }
+
+    <div class="field">
+      <label class="field-label" for="u-phone">Phone <span class="muted">(optional)</span></label>
+      <input
+        id="u-phone"
+        class="input"
+        type="tel"
+        autocomplete="tel"
+        [formField]="form.phone"
+        aria-describedby="u-phone-error"
+        [attr.aria-invalid]="form.phone().touched() && form.phone().invalid()"
+      />
+      <app-field-errors id="u-phone-error" [state]="form.phone()" />
+    </div>
+
+    @if (isCreate()) {
+      <div class="field">
+        <label class="field-label" for="u-password">Temporary password</label>
+        <input
+          id="u-password"
+          class="input"
+          type="text"
+          autocomplete="new-password"
+          [formField]="form.password"
+          aria-describedby="u-password-hint u-password-error"
+          [attr.aria-invalid]="form.password().touched() && form.password().invalid()"
+        />
+        <span id="u-password-hint" class="field-hint">Share it with the new team member; they can change it in Settings.</span>
+        <app-field-errors id="u-password-error" [state]="form.password()" />
+      </div>
+    }
+
+    <div class="footer">
+      <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+        @if (saving()) {
+          <app-icon name="loader" [size]="16" class="spin" />
+          Saving…
+        } @else {
+          {{ isCreate() ? 'Add member' : 'Save changes' }}
+        }
+      </button>
+    </div>
+  </form>
+</app-modal>

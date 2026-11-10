@@ -72,7 +72,11 @@
         <dd class="person">
           <app-avatar [name]="c.name" [size]="32" />
           <span class="who">
-            <span class="name">{{ c.name }}</span>
+            @if (auth.can('customer.view')) {
+              <a class="name" [routerLink]="['/customers', c.id]">{{ c.name }}</a>
+            } @else {
+              <span class="name">{{ c.name }}</span>
+            }
             <span class="muted small">{{ c.email }}</span>
             @if (c.company) {
               <span class="muted small">{{ c.company }}</span>

@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { UserDirectory } from '@core/services/user-directory.service';
 import { Avatar } from '@shared/components/avatar/avatar';
@@ -21,7 +22,7 @@ import { TicketDetailsStore } from './ticket-details.store';
 /** Боковая панель: статус, приоритет, исполнитель и сведения о тикете */
 @Component({
   selector: 'app-ticket-properties',
-  imports: [DatePipe, Avatar, Icon, StatusBadge, PriorityBadge, SlaBadge],
+  imports: [DatePipe, RouterLink, Avatar, Icon, StatusBadge, PriorityBadge, SlaBadge],
   templateUrl: './ticket-properties.html',
   styleUrl: './ticket-properties.css',
 })

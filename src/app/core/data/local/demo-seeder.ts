@@ -6,7 +6,7 @@ import { generateDemoData } from './seed-data';
 import { STORAGE_KEYS } from './storage-keys';
 
 /** Увеличить, если поменялась структура демо-данных — старые данные пересоздадутся */
-const SEED_VERSION = 1;
+const SEED_VERSION = 2;
 
 @Injectable()
 export class DemoSeeder implements DemoDataControl {

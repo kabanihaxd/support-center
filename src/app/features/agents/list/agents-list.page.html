@@ -1,0 +1,143 @@
+<div class="page">
+  <app-page-header title="Agents" subtitle="IT specialists who handle support requests.">
+    <button type="button" class="btn btn-primary" (click)="actions.openCreate()">
+      <app-icon name="user-plus" [size]="16" />
+      Add team member
+    </button>
+  </app-page-header>
+
+  <section class="stats" aria-label="Team summary">
+    <app-stat-card label="Active specialists" [value]="stats().team" icon="headset" [loading]="loading()" />
+    <app-stat-card label="Active tickets" [value]="stats().active" icon="activity" tone="violet" [loading]="loading()" />
+    <app-stat-card label="Unassigned" [value]="stats().unassigned" icon="inbox" tone="amber" hint="Waiting for an assignee" [loading]="loading()" />
+    <app-stat-card label="Overdue" [value]="stats().overdue" icon="warning" tone="red" hint="SLA deadline passed" [loading]="loading()" />
+  </section>
+
+  @if (!loading() && !error()) {
+    <app-workload-panel [workloads]="workloads()" />
+  }
+
+  <section class="card" aria-label="Team members">
+    <div class="toolbar">
+      <div class="search">
+        <label for="agent-search" class="sr-only">Search team members</label>
+        <app-icon name="search" [size]="16" class="search-icon" />
+        <input
+          id="agent-search"
+          class="input"
+          type="search"
+          placeholder="Search by name, email or title…"
+          [value]="search()"
+          (input)="onSearch($event)"
+        />
+      </div>
+      <label class="sr-only" for="agent-role">Role</label>
+      <select id="agent-role" class="select" (change)="onRole($event)">
+        <option value="all" [selected]="role() === 'all'">All roles</option>
+        <option value="agent" [selected]="role() === 'agent'">Agents</option>
+        <option value="admin" [selected]="role() === 'admin'">Admins</option>
+      </select>
+      <label class="sr-only" for="agent-status">Account status</label>
+      <select id="agent-status" class="select" (change)="onStatus($event)">
+        <option value="all" [selected]="status() === 'all'">All accounts</option>
+        <option value="active" [selected]="status() === 'active'">Active</option>
+        <option value="inactive" [selected]="status() === 'inactive'">Inactive</option>
+      </select>
+    </div>
+
+    @if (error(); as message) {
+      <app-empty-state icon="circle-alert" tone="error" title="Couldn't load the team" [message]="message">
+        <button type="button" class="btn btn-secondary" (click)="load()">Try again</button>
+      </app-empty-state>
+    } @else if (loading()) {
+      <div class="loading" aria-busy="true">
+        <span class="sr-only">Loading team…</span>
+        @for (row of [1, 2, 3, 4, 5]; track row) {
+          <span class="skeleton" style="height: 44px"></span>
+        }
+      </div>
+    } @else if (!filtered().length) {
+      <app-empty-state icon="search" title="No team members found" message="Try a different search or filter.">
+        <button type="button" class="btn btn-secondary" (click)="clearFilters()">Clear filters</button>
+      </app-empty-state>
+    } @else {
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">Team members and their ticket statistics</caption>
+          <thead>
+            <tr>
+              <th scope="col">Member</th>
+              <th scope="col">Role</th>
+              <th scope="col">Assigned</th>
+              <th scope="col">Active</th>
+              <th scope="col" class="col-last">Resolved</th>
+              <th scope="col" class="col-joined">Avg. resolution</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (w of filtered(); track w.agent.id) {
+              <tr>
+                <td>
+                  <a class="person" [routerLink]="['/agents', w.agent.id]">
+                    <app-avatar [name]="w.agent.name" [size]="32" />
+                    <span class="who">
+                      <span class="name">{{ w.agent.name }}</span>
+                      <span class="muted email">{{ w.agent.jobTitle || w.agent.email }}</span>
+                    </span>
+                  </a>
+                </td>
+                <td><app-role-badge [role]="w.agent.role" /></td>
+                <td><span class="count">{{ w.assignedCount }}</span></td>
+                <td>
+                  <span class="count">{{ w.activeCount }}</span>
+                  @if (w.overdueCount) {
+                    <span class="chip overdue">{{ w.overdueCount }} overdue</span>
+                  }
+                </td>
+                <td class="col-last">{{ w.resolvedCount }}</td>
+                <td class="col-joined">{{ duration(w.avgResolutionHours) }}</td>
+                <td><app-account-status [active]="w.agent.active" /></td>
+                <td class="col-actions">
+                  <div class="actions">
+                    <a class="icon-btn" [routerLink]="['/agents', w.agent.id]" [attr.aria-label]="'View ' + w.agent.name" title="View profile">
+                      <app-icon name="eye" [size]="16" />
+                    </a>
+                    <button type="button" class="icon-btn" [attr.aria-label]="'Edit ' + w.agent.name" title="Edit" (click)="actions.openEdit(w.agent)">
+                      <app-icon name="pencil" [size]="16" />
+                    </button>
+                    @if (!actions.isSelf(w.agent)) {
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        [class.danger]="w.agent.active"
+                        [disabled]="actions.toggling() === w.agent.id"
+                        [attr.aria-label]="(w.agent.active ? 'Deactivate ' : 'Activate ') + w.agent.name"
+                        [title]="w.agent.active ? 'Deactivate' : 'Activate'"
+                        (click)="actions.toggleActive(w.agent)"
+                      >
+                        <app-icon [name]="w.agent.active ? 'user-x' : 'user-check'" [size]="16" />
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>
+
+<app-user-form-dialog
+  [open]="actions.dialogOpen()"
+  [mode]="actions.mode()"
+  [user]="actions.target()"
+  [saving]="actions.saving()"
+  [error]="actions.error()"
+  [canChangeRole]="actions.canChangeRole()"
+  (save)="actions.save($event)"
+  (closed)="actions.close()"
+/>

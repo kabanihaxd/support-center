@@ -52,6 +52,8 @@ export class TicketFormPage implements OnInit {
 
   /** id из маршрута :id — режим редактирования */
   readonly id = input<string>();
+  /** ?customer= — предвыбор клиента при создании из его профиля */
+  readonly customer = input<string>();
 
   protected readonly state = signal<PageState>('loading');
   protected readonly ticket = signal<Ticket | null>(null);
@@ -96,6 +98,10 @@ export class TicketFormPage implements OnInit {
     await this.users.load();
     const id = this.id();
     if (!id) {
+      const preselected = this.customer();
+      if (preselected && this.isStaff() && this.users.customers().some((c) => c.id === preselected && c.active)) {
+        this.model.update((m) => ({ ...m, customerId: preselected }));
+      }
       this.state.set('ready');
       return;
     }

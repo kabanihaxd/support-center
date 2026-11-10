@@ -1,0 +1,67 @@
+<div class="page">
+  <a class="back" routerLink="/agents">
+    <app-icon name="arrow-left" [size]="16" />
+    Back to agents
+  </a>
+
+  @if (loading() && !agent()) {
+    <div aria-busy="true" class="loading">
+      <span class="sr-only">Loading profile…</span>
+      <span class="skeleton" style="height: 120px"></span>
+      <span class="skeleton" style="height: 100px"></span>
+    </div>
+  } @else if (agent(); as a) {
+    <app-profile-header [user]="a">
+      <button type="button" class="btn btn-secondary" (click)="actions.openEdit(a)">
+        <app-icon name="pencil" [size]="16" />
+        Edit
+      </button>
+      @if (!actions.isSelf(a)) {
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [class.danger]="a.active"
+          [disabled]="actions.toggling() === a.id"
+          (click)="actions.toggleActive(a)"
+        >
+          <app-icon [name]="a.active ? 'user-x' : 'user-check'" [size]="16" />
+          {{ a.active ? 'Deactivate' : 'Activate' }}
+        </button>
+      }
+    </app-profile-header>
+
+    @if (workload(); as w) {
+      <section class="stats" aria-label="Performance">
+        <app-stat-card label="Active tickets" [value]="w.activeCount" icon="activity" tone="violet" [hint]="loadLabel()" />
+        <app-stat-card label="Overdue" [value]="w.overdueCount" icon="warning" tone="red" />
+        <app-stat-card label="Resolved / closed" [value]="w.resolvedCount" icon="circle-check" tone="green" />
+        <app-stat-card label="Avg. resolution time" [value]="avgResolution()" icon="timer" tone="gray" />
+      </section>
+    }
+
+    <app-person-tickets
+      heading="Assigned tickets"
+      emptyMessage="No tickets are assigned to this specialist."
+      [tickets]="assigned()"
+      [showCustomer]="true"
+      [loading]="loading()"
+    />
+  } @else {
+    <div class="card">
+      <app-empty-state icon="search" title="Team member not found" message="The account may have been removed or the link is incorrect.">
+        <a class="btn btn-secondary" routerLink="/agents">Back to agents</a>
+      </app-empty-state>
+    </div>
+  }
+</div>
+
+<app-user-form-dialog
+  [open]="actions.dialogOpen()"
+  [mode]="actions.mode()"
+  [user]="actions.target()"
+  [saving]="actions.saving()"
+  [error]="actions.error()"
+  [canChangeRole]="actions.canChangeRole()"
+  (save)="actions.save($event)"
+  (closed)="actions.close()"
+/>

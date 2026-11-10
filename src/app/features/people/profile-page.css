@@ -1,0 +1,32 @@
+/* Общие стили страниц профиля (Customer / Agent) */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: start;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--text);
+}
+
+.loading {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-4);
+}
+
+.danger {
+  color: var(--danger-text);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+}

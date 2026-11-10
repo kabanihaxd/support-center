@@ -1,0 +1,145 @@
+<div class="page">
+  <app-page-header title="Customers" subtitle="People and companies who submit support requests." />
+
+  <section class="stats" aria-label="Customer summary">
+    <app-stat-card label="Total customers" [value]="stats().total" icon="users" [loading]="loading()" />
+    <app-stat-card label="Active accounts" [value]="stats().active" icon="user-check" tone="green" [loading]="loading()" />
+    <app-stat-card label="With open tickets" [value]="stats().withOpen" icon="ticket" tone="amber" [loading]="loading()" />
+  </section>
+
+  <section class="card" aria-label="Customers list">
+    <div class="toolbar">
+      <div class="search">
+        <label for="customer-search" class="sr-only">Search customers</label>
+        <app-icon name="search" [size]="16" class="search-icon" />
+        <input
+          id="customer-search"
+          class="input"
+          type="search"
+          placeholder="Search by name, email or company…"
+          [value]="query().search"
+          (input)="patch({ search: value($event) })"
+        />
+      </div>
+      <label class="sr-only" for="customer-status">Account status</label>
+      <select id="customer-status" class="select" (change)="setStatus($event)">
+        <option value="all" [selected]="query().status === 'all'">All accounts</option>
+        <option value="active" [selected]="query().status === 'active'">Active</option>
+        <option value="inactive" [selected]="query().status === 'inactive'">Inactive</option>
+      </select>
+      <label class="sr-only" for="customer-sort">Sort by</label>
+      <select id="customer-sort" class="select" (change)="setSort($event)">
+        <option value="name" [selected]="query().sort === 'name'">Name A–Z</option>
+        <option value="tickets" [selected]="query().sort === 'tickets'">Most tickets</option>
+        <option value="open" [selected]="query().sort === 'open'">Most open tickets</option>
+        <option value="lastTicket" [selected]="query().sort === 'lastTicket'">Latest request</option>
+        <option value="registered" [selected]="query().sort === 'registered'">Newest customers</option>
+      </select>
+      <label class="checkbox">
+        <input type="checkbox" [checked]="query().withOpenTickets" (change)="patch({ withOpenTickets: checked($event) })" />
+        With open tickets
+      </label>
+    </div>
+
+    @if (error(); as message) {
+      <app-empty-state icon="circle-alert" tone="error" title="Couldn't load customers" [message]="message">
+        <button type="button" class="btn btn-secondary" (click)="load()">Try again</button>
+      </app-empty-state>
+    } @else if (loading()) {
+      <div class="loading" aria-busy="true">
+        <span class="sr-only">Loading customers…</span>
+        @for (row of [1, 2, 3, 4, 5, 6]; track row) {
+          <span class="skeleton" style="height: 44px"></span>
+        }
+      </div>
+    } @else if (!filtered().length) {
+      <app-empty-state icon="search" title="No customers found" message="Try a different search or filter.">
+        <button type="button" class="btn btn-secondary" (click)="query.set({ search: '', status: 'all', withOpenTickets: false, sort: query().sort })">
+          Clear filters
+        </button>
+      </app-empty-state>
+    } @else {
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">Customers</caption>
+          <thead>
+            <tr>
+              <th scope="col">Customer</th>
+              <th scope="col" class="col-company">Company</th>
+              <th scope="col">Tickets</th>
+              <th scope="col" class="col-last">Last request</th>
+              <th scope="col" class="col-joined">Registered</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of visible(); track s.customer.id) {
+              <tr>
+                <td>
+                  <a class="person" [routerLink]="['/customers', s.customer.id]">
+                    <app-avatar [name]="s.customer.name" [size]="32" />
+                    <span class="who">
+                      <span class="name">{{ s.customer.name }}</span>
+                      <span class="muted email">{{ s.customer.email }}</span>
+                    </span>
+                  </a>
+                </td>
+                <td class="col-company">{{ s.customer.company || '—' }}</td>
+                <td>
+                  <span class="count">{{ s.ticketCount }}</span>
+                  @if (s.openTicketCount) {
+                    <span class="chip open">{{ s.openTicketCount }} open</span>
+                  }
+                </td>
+                <td class="col-last muted">{{ s.lastTicketAt | relativeTime }}</td>
+                <td class="col-joined">{{ s.customer.createdAt | date: 'MMM d, y' }}</td>
+                <td><app-account-status [active]="s.customer.active" /></td>
+                <td class="col-actions">
+                  <div class="actions">
+                    <a class="icon-btn" [routerLink]="['/customers', s.customer.id]" [attr.aria-label]="'View ' + s.customer.name" title="View profile">
+                      <app-icon name="eye" [size]="16" />
+                    </a>
+                    @if (actions.canManage(s.customer)) {
+                      <button type="button" class="icon-btn" [attr.aria-label]="'Edit ' + s.customer.name" title="Edit" (click)="actions.openEdit(s.customer)">
+                        <app-icon name="pencil" [size]="16" />
+                      </button>
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        [class.danger]="s.customer.active"
+                        [disabled]="actions.toggling() === s.customer.id"
+                        [attr.aria-label]="(s.customer.active ? 'Deactivate ' : 'Activate ') + s.customer.name"
+                        [title]="s.customer.active ? 'Deactivate' : 'Activate'"
+                        (click)="actions.toggleActive(s.customer)"
+                      >
+                        <app-icon [name]="s.customer.active ? 'user-x' : 'user-check'" [size]="16" />
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <app-pagination
+        [page]="page()"
+        [pageSize]="pageSize()"
+        [total]="filtered().length"
+        (pageChange)="page.set($event)"
+        (pageSizeChange)="pageSize.set($event)"
+      />
+    }
+  </section>
+</div>
+
+<app-user-form-dialog
+  [open]="actions.dialogOpen()"
+  [mode]="actions.mode()"
+  [user]="actions.target()"
+  [saving]="actions.saving()"
+  [error]="actions.error()"
+  (save)="actions.save($event)"
+  (closed)="actions.close()"
+/>

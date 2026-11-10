@@ -1,4 +1,5 @@
 import {
+  ACTIVE_STATUSES,
   AppNotification,
   Comment,
   SLA_HOURS,
@@ -102,12 +103,22 @@ function createUsers(rnd: Random, nowMs: number): User[] {
   return [...staff, ...customers];
 }
 
+/** Статус зависит от возраста тикета: свежие — в работе, старые — решены */
 function pickStatus(rnd: Random, ageHours: number): TicketStatus {
   if (ageHours < 24) return rnd.weighted<TicketStatus>(['open', 'in_progress', 'pending'], [50, 35, 15]);
   if (ageHours < 24 * 7) {
-    return rnd.weighted<TicketStatus>(['open', 'in_progress', 'pending', 'resolved', 'closed'], [15, 28, 14, 30, 13]);
+    return rnd.weighted<TicketStatus>(['open', 'in_progress', 'pending', 'resolved', 'closed'], [20, 30, 15, 25, 10]);
   }
-  return rnd.weighted<TicketStatus>(['in_progress', 'pending', 'resolved', 'closed'], [4, 4, 34, 58]);
+  if (ageHours < 24 * 14) {
+    return rnd.weighted<TicketStatus>(['in_progress', 'pending', 'resolved', 'closed'], [12, 8, 35, 45]);
+  }
+  return rnd.weighted<TicketStatus>(['in_progress', 'pending', 'resolved', 'closed'], [3, 2, 25, 70]);
+}
+
+/** Демо-агенту чаще достаются активные тикеты — чтобы в его кабинете было с чем работать */
+function staffWeight(staff: User, status: TicketStatus): number {
+  if (staff.id === DEMO_AGENT_ID) return ACTIVE_STATUSES.includes(status) ? 9 : 4;
+  return staff.role === 'admin' ? 1 : 3;
 }
 
 function buildTicket(ctx: BuildContext, index: number, createdMs: number, customer: User, staff: User[]): Ticket {
@@ -133,7 +144,7 @@ function buildTicket(ctx: BuildContext, index: number, createdMs: number, custom
   const unassigned = status === 'open' && rnd.chance(0.45);
   const assignee = unassigned
     ? null
-    : rnd.weighted(staff, staff.map((s) => (s.id === DEMO_AGENT_ID ? 4 : s.role === 'admin' ? 1 : 3)));
+    : rnd.weighted(staff, staff.map((s) => staffWeight(s, status)));
 
   const ticket: Ticket = {
     id,

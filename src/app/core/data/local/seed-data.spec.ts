@@ -51,6 +51,12 @@ describe('generateDemoData', () => {
     }
   });
 
+  it('gives the demo agent active work and keeps a realistic active backlog', () => {
+    const active = data.tickets.filter((t) => ACTIVE_STATUSES.includes(t.status));
+    expect(active.length).toBeGreaterThanOrEqual(15);
+    expect(active.filter((t) => t.assigneeId === 'usr_agent_1').length).toBeGreaterThanOrEqual(3);
+  });
+
   it('gives the demo customer some tickets', () => {
     expect(data.tickets.filter((t) => t.customerId === 'usr_cust_1').length).toBeGreaterThan(3);
   });

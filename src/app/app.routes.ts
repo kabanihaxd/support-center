@@ -27,8 +27,40 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', title: 'Dashboard', loadComponent: placeholder },
       { path: 'tickets', loadChildren: () => import('@features/tickets/tickets.routes').then((m) => m.TICKET_ROUTES) },
-      { path: 'customers', title: 'Customers', data: { permission: 'customer.view' }, loadComponent: placeholder },
-      { path: 'agents', title: 'Agents', data: { permission: 'agent.view' }, loadComponent: placeholder },
+      {
+        path: 'customers',
+        data: { permission: 'customer.view' },
+        children: [
+          {
+            path: '',
+            title: 'Customers',
+            loadComponent: () =>
+              import('@features/customers/list/customers-list.page').then((m) => m.CustomersListPage),
+          },
+          {
+            path: ':id',
+            title: 'Customer',
+            loadComponent: () =>
+              import('@features/customers/profile/customer-profile.page').then((m) => m.CustomerProfilePage),
+          },
+        ],
+      },
+      {
+        path: 'agents',
+        data: { permission: 'agent.view' },
+        children: [
+          {
+            path: '',
+            title: 'Agents',
+            loadComponent: () => import('@features/agents/list/agents-list.page').then((m) => m.AgentsListPage),
+          },
+          {
+            path: ':id',
+            title: 'Agent',
+            loadComponent: () => import('@features/agents/profile/agent-profile.page').then((m) => m.AgentProfilePage),
+          },
+        ],
+      },
       { path: 'reports', title: 'Reports', data: { permission: 'reports.view' }, loadComponent: placeholder },
       { path: 'settings', title: 'Settings', loadComponent: placeholder },
       {
