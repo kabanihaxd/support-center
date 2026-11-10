@@ -1,0 +1,53 @@
+<div class="wrap" appDismiss [appDismissActive]="open()" (appDismiss)="close($event === 'escape')">
+  <button
+    #trigger
+    type="button"
+    class="icon-btn"
+    aria-haspopup="true"
+    aria-controls="notification-panel"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="triggerLabel()"
+    (click)="toggle()"
+  >
+    <app-icon name="bell" />
+    @if (service.unreadCount()) {
+      <span class="count" aria-hidden="true">{{ service.unreadCount() > 9 ? '9+' : service.unreadCount() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <section id="notification-panel" class="panel card" aria-label="Notifications">
+      <header class="panel-header">
+        <h2>Notifications</h2>
+        <button type="button" class="btn btn-ghost btn-sm" [disabled]="!service.unreadCount()" (click)="markAll()">
+          <app-icon name="check-check" [size]="16" />
+          Mark all as read
+        </button>
+      </header>
+
+      @if (visible().length) {
+        <ul class="list" role="list">
+          @for (n of visible(); track n.id) {
+            <li>
+              <button type="button" class="item" [class.unread]="!n.read" (click)="openNotification(n)">
+                <span class="item-icon"><app-icon [name]="icons[n.type]" [size]="16" /></span>
+                <span class="item-text">
+                  <span class="item-message">{{ n.message }}</span>
+                  <span class="item-time">{{ n.createdAt | relativeTime }}</span>
+                </span>
+                @if (!n.read) {
+                  <span class="dot"><span class="sr-only">Unread</span></span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="empty">
+          <app-icon name="bell-off" [size]="22" />
+          <p>You're all caught up</p>
+        </div>
+      }
+    </section>
+  }
+</div>

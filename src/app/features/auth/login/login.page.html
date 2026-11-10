@@ -1,0 +1,72 @@
+<app-auth-layout>
+  <div class="heading">
+    <h1>Sign in</h1>
+    <p class="muted">Welcome back! Sign in to your SupportCenter account.</p>
+  </div>
+
+  <app-demo-accounts [accounts]="demoAccounts" [busyEmail]="demoBusy()" (pick)="useDemo($event)" />
+
+  <div class="or" aria-hidden="true"><span>or sign in with email</span></div>
+
+  <form class="form-grid" [formRoot]="form" aria-label="Sign in">
+    @if (serverError(); as error) {
+      <div class="alert" role="alert">
+        <app-icon name="circle-alert" [size]="16" />
+        {{ error }}
+      </div>
+    }
+
+    <div class="field">
+      <label class="field-label" for="login-email">Email</label>
+      <input
+        id="login-email"
+        class="input"
+        type="email"
+        autocomplete="email"
+        placeholder="you@company.com"
+        [formField]="form.email"
+        aria-describedby="login-email-error"
+        [attr.aria-invalid]="form.email().touched() && form.email().invalid()"
+      />
+      <app-field-errors id="login-email-error" [state]="form.email()" />
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="login-password">Password</label>
+      <div class="password">
+        <input
+          id="login-password"
+          class="input"
+          autocomplete="current-password"
+          [type]="showPassword() ? 'text' : 'password'"
+          [formField]="form.password"
+          aria-describedby="login-password-error"
+          [attr.aria-invalid]="form.password().touched() && form.password().invalid()"
+        />
+        <button
+          type="button"
+          class="icon-btn reveal"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword()"
+          (click)="showPassword.set(!showPassword())"
+        >
+          <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16" />
+        </button>
+      </div>
+      <app-field-errors id="login-password-error" [state]="form.password()" />
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block submit" [disabled]="form().submitting()">
+      @if (form().submitting()) {
+        <app-icon name="loader" [size]="16" class="spin" />
+        Signing in…
+      } @else {
+        Sign in
+      }
+    </button>
+  </form>
+
+  <p class="switch muted">
+    New customer? <a routerLink="/register">Create an account</a>
+  </p>
+</app-auth-layout>

@@ -1,0 +1,33 @@
+<button
+  type="button"
+  class="icon-btn menu-btn"
+  aria-label="Open navigation"
+  aria-controls="app-sidebar"
+  [attr.aria-expanded]="menuExpanded()"
+  (click)="menuToggle.emit()"
+>
+  <app-icon name="menu" />
+</button>
+
+<form class="search" role="search" (submit)="search($event)">
+  <label for="global-search" class="sr-only">Search tickets</label>
+  <app-icon name="search" [size]="16" class="search-icon" />
+  <input
+    id="global-search"
+    class="input search-input"
+    type="search"
+    autocomplete="off"
+    [placeholder]="searchPlaceholder()"
+    [value]="query()"
+    (input)="onQueryInput($event)"
+  />
+</form>
+
+<div class="actions">
+  <button type="button" class="icon-btn" [attr.aria-label]="themeLabel()" [title]="themeLabel()" (click)="theme.toggle()">
+    <app-icon [name]="theme.resolved() === 'dark' ? 'sun' : 'moon'" />
+  </button>
+  <app-notification-menu />
+  <span class="separator" aria-hidden="true"></span>
+  <app-user-menu />
+</div>

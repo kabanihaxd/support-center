@@ -1,0 +1,32 @@
+<div class="backdrop" (click)="closed.emit()" aria-hidden="true"></div>
+
+<nav class="panel" id="app-sidebar" aria-label="Main navigation">
+  <div class="brand">
+    <app-brand-logo />
+    <button type="button" class="icon-btn close" aria-label="Close navigation" (click)="closed.emit()">
+      <app-icon name="x" />
+    </button>
+  </div>
+
+  <ul class="nav" role="list">
+    @for (item of items(); track item.path) {
+      <li>
+        <a
+          class="nav-link"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          (click)="closed.emit()"
+        >
+          <app-icon [name]="item.icon" />
+          <span>{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="footer">
+    <span class="chip">{{ roleLabel() }} workspace</span>
+    <span class="muted small">Demo data · stored in your browser</span>
+  </div>
+</nav>

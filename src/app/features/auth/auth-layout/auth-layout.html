@@ -1,0 +1,21 @@
+<aside class="promo" aria-label="About SupportCenter">
+  <div class="promo-inner">
+    <p class="eyebrow">IT Support Platform</p>
+    <p class="headline">Resolve support requests faster, together.</p>
+    <ul role="list">
+      @for (f of features; track f) {
+        <li>
+          <span class="check"><app-icon name="check" [size]="14" [strokeWidth]="3" /></span>
+          {{ f }}
+        </li>
+      }
+    </ul>
+  </div>
+</aside>
+
+<main class="content">
+  <div class="content-inner">
+    <app-brand-logo />
+    <ng-content />
+  </div>
+</main>
