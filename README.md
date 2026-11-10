@@ -232,3 +232,7 @@ npm run deploy
 2. Implement an `AuthGateway` on top of Firebase Authentication.
 3. Replace `provideLocalData()` with `provideFirebaseData()` in `app.config.ts`. `DemoDataControl.supported` becomes `false`, which hides the reset option.
 4. Enforce the same rules in Firestore security rules: customers read only their own tickets, and internal comments are staff-only.
+
+## License
+
+[MIT](LICENSE)
