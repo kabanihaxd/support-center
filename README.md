@@ -4,6 +4,8 @@ An IT helpdesk for tracking support tickets, built with **Angular 22**. It has t
 
 The backend is a mock that stores everything in `localStorage` and adds simulated network latency. The data layer sits behind abstract repositories, so you can move it to Firebase by swapping a single provider.
 
+**[Live demo →](https://support-center-29eb6.web.app)** Sign in with one click as Admin, Agent or Customer.
+
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ## Contents
