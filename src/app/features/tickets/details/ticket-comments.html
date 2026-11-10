@@ -1,0 +1,75 @@
+<section class="card" aria-labelledby="comments-title">
+  <div class="card-header">
+    <h2 id="comments-title">Conversation</h2>
+    <span class="muted count">{{ store.comments().length }} {{ store.comments().length === 1 ? 'message' : 'messages' }}</span>
+  </div>
+
+  <div class="card-body">
+    @if (store.activityLoading() && !store.comments().length) {
+      <div class="skeleton-list" aria-busy="true">
+        <span class="sr-only">Loading comments…</span>
+        <span class="skeleton" style="height: 64px"></span>
+        <span class="skeleton" style="height: 64px"></span>
+      </div>
+    } @else if (!store.comments().length) {
+      <p class="empty muted">No messages yet. Start the conversation below.</p>
+    } @else {
+      <ol class="thread" role="list">
+        @for (c of store.comments(); track c.id) {
+          <li class="comment" [class.internal]="c.internal" [class.own]="c.authorId === auth.user()?.id">
+            <app-avatar [name]="authorName(c.authorId)" [size]="32" />
+            <div class="bubble">
+              <div class="meta">
+                <span class="author">{{ authorName(c.authorId) }}</span>
+                <span class="chip">{{ authorRole(c.authorId) }}</span>
+                @if (c.internal) {
+                  <span class="chip note">
+                    <app-icon name="lock" [size]="11" />
+                    Internal note
+                  </span>
+                }
+                <time class="muted time" [attr.datetime]="c.createdAt" [title]="c.createdAt | date: 'MMM d, y, HH:mm'">
+                  {{ c.createdAt | relativeTime }}
+                </time>
+              </div>
+              <p class="body">{{ c.body }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  </div>
+
+  @if (closed()) {
+    <p class="closed muted">
+      <app-icon name="lock" [size]="14" />
+      This ticket is closed. Reopen it to continue the conversation.
+    </p>
+  } @else {
+    <form class="composer" [formRoot]="form" aria-label="Add a comment">
+      <label for="comment-body" class="sr-only">{{ model().internal ? 'Internal note' : 'Reply' }}</label>
+      <textarea
+        id="comment-body"
+        class="textarea"
+        rows="3"
+        [placeholder]="model().internal ? 'Write an internal note (visible to support staff only)…' : 'Write a reply…'"
+        [formField]="form.body"
+        aria-describedby="comment-body-error"
+        [attr.aria-invalid]="form.body().touched() && form.body().invalid()"
+      ></textarea>
+      <app-field-errors id="comment-body-error" [state]="form.body()" />
+      <div class="composer-actions">
+        @if (canInternal()) {
+          <label class="checkbox">
+            <input type="checkbox" [formField]="form.internal" />
+            Internal note
+          </label>
+        }
+        <button type="submit" class="btn btn-primary" [disabled]="store.isBusy('comment')">
+          <app-icon [name]="store.isBusy('comment') ? 'loader' : 'send'" [size]="16" [class.spin]="store.isBusy('comment')" />
+          {{ model().internal ? 'Add note' : 'Send reply' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

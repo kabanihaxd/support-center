@@ -14,7 +14,9 @@ export function formatDuration(hours: number | null): string {
   if (hours === null || !Number.isFinite(hours)) return '—';
   if (hours < 1) return `${Math.max(1, Math.round(hours * 60))}m`;
   if (hours < 24) return `${Math.round(hours * 10) / 10}h`;
-  const days = Math.floor(hours / 24);
-  const rest = Math.round(hours % 24);
+  // Сначала округляем до часа, иначе 71.9h превратится в «2d 24h»
+  const total = Math.round(hours);
+  const days = Math.floor(total / 24);
+  const rest = total % 24;
   return rest ? `${days}d ${rest}h` : `${days}d`;
 }

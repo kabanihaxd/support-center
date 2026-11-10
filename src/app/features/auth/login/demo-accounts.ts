@@ -85,8 +85,6 @@ const ROLE_ICON: Record<DemoAccount['role'], IconName> = {
       color: var(--text);
       font-family: var(--font-mono);
     }
-    .spin { animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
   `,
 })
 export class DemoAccounts {

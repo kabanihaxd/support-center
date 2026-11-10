@@ -1,0 +1,84 @@
+<div class="page">
+  <a class="back" routerLink="/tickets">
+    <app-icon name="arrow-left" [size]="16" />
+    Back to tickets
+  </a>
+
+  @if (store.loading()) {
+    <div class="layout" aria-busy="true">
+      <span class="sr-only">Loading ticket…</span>
+      <div class="main">
+        <span class="skeleton" style="height: 32px; width: 60%"></span>
+        <span class="skeleton" style="height: 160px"></span>
+        <span class="skeleton" style="height: 220px"></span>
+      </div>
+      <span class="skeleton" style="height: 360px"></span>
+    </div>
+  } @else if (store.error(); as error) {
+    <div class="card">
+      <app-empty-state icon="circle-alert" tone="error" title="Couldn't load the ticket" [message]="error">
+        <button type="button" class="btn btn-secondary" (click)="store.load(id())">Try again</button>
+      </app-empty-state>
+    </div>
+  } @else if (store.ticket(); as t) {
+    <header class="header">
+      <div class="heading">
+        <span class="mono ticket-id">{{ t.id }}</span>
+        <h1>{{ t.title }}</h1>
+        <div class="badges">
+          <app-status-badge [status]="t.status" />
+          <app-priority-badge [priority]="t.priority" />
+          <span class="chip">{{ categoryLabels[t.category] }}</span>
+          <app-sla-badge [ticket]="t" />
+        </div>
+      </div>
+
+      <div class="actions">
+        @if (canEdit()) {
+          <a class="btn btn-secondary" [routerLink]="['/tickets', t.id, 'edit']">
+            <app-icon name="pencil" [size]="16" />
+            Edit
+          </a>
+        }
+        @if (canCloseOrReopen()) {
+          @if (isFinished()) {
+            <button type="button" class="btn btn-secondary" [disabled]="store.isBusy('status') || store.isBusy('delete')" (click)="reopen()">
+              <app-icon name="reset" [size]="16" />
+              Reopen
+            </button>
+          }
+          @if (t.status !== 'closed') {
+            <button type="button" class="btn btn-primary" [disabled]="store.isBusy('status') || store.isBusy('delete')" (click)="close()">
+              <app-icon name="circle-check" [size]="16" />
+              Close ticket
+            </button>
+          }
+        }
+        @if (auth.can('ticket.delete')) {
+          <button type="button" class="btn btn-secondary danger" [disabled]="store.isBusy('status') || store.isBusy('delete')" (click)="remove()">
+            <app-icon name="trash" [size]="16" />
+            Delete
+          </button>
+        }
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="main">
+        <section class="card" aria-labelledby="description-title">
+          <h2 id="description-title" class="card-header">Description</h2>
+          <p class="card-body description">{{ t.description }}</p>
+        </section>
+        <app-ticket-comments />
+        <app-ticket-history />
+      </div>
+      <app-ticket-properties />
+    </div>
+  } @else {
+    <div class="card">
+      <app-empty-state icon="search" title="Ticket not found" message="It may have been deleted, or you don't have access to it.">
+        <a class="btn btn-secondary" routerLink="/tickets">Back to tickets</a>
+      </app-empty-state>
+    </div>
+  }
+</div>

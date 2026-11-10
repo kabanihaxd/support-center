@@ -1,0 +1,96 @@
+<div class="table-wrap">
+  <table class="table" [attr.aria-busy]="loading()">
+    <caption class="sr-only">
+      Tickets. Column headers with buttons can be used to sort.
+    </caption>
+    <thead>
+      <tr>
+        @for (col of columns(); track col.field) {
+          <th scope="col" [class]="col.className ?? ''" [attr.aria-sort]="ariaSort(col.field)">
+            <button type="button" class="sort" (click)="sortChange.emit(col.field)">
+              {{ col.label }}
+              <app-icon
+                [name]="sort() === col.field ? (dir() === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrow-up-down'"
+                [size]="13"
+                [class.inactive]="sort() !== col.field"
+              />
+            </button>
+          </th>
+        }
+        <th scope="col" class="col-actions"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (loading()) {
+        @for (row of skeletonRows; track row) {
+          <tr aria-hidden="true">
+            @for (col of columns(); track col.field) {
+              <td [class]="col.className ?? ''"><span class="skeleton" style="height: 14px; width: 80%"></span></td>
+            }
+            <td></td>
+          </tr>
+        }
+      } @else {
+        @for (t of tickets(); track t.id) {
+          <tr>
+            <td class="col-id"><a class="mono id" [routerLink]="['/tickets', t.id]" [attr.aria-label]="'Open ticket ' + t.id">{{ t.id }}</a></td>
+            <td class="col-title">
+              <a class="title" [routerLink]="['/tickets', t.id]">{{ t.title }}</a>
+              <span class="meta">
+                <span class="chip">{{ categoryLabels[t.category] }}</span>
+                <app-sla-badge [ticket]="t" />
+              </span>
+            </td>
+            @if (showCustomer()) {
+              <td class="col-customer">
+                <span class="person">
+                  <app-avatar [name]="name(t.customerId)" [size]="26" />
+                  {{ name(t.customerId) }}
+                </span>
+              </td>
+            }
+            <td class="col-assignee">
+              @if (t.assigneeId) {
+                <span class="person">
+                  <app-avatar [name]="name(t.assigneeId)" [size]="26" />
+                  {{ name(t.assigneeId) }}
+                </span>
+              } @else {
+                <span class="muted">Unassigned</span>
+              }
+            </td>
+            <td class="col-priority"><app-priority-badge [priority]="t.priority" /></td>
+            <td class="col-status"><app-status-badge [status]="t.status" /></td>
+            <td class="col-created">
+              <time [attr.datetime]="t.createdAt">{{ t.createdAt | date: 'MMM d, y' }}</time>
+              <span class="muted time">{{ t.createdAt | date: 'HH:mm' }}</span>
+            </td>
+            <td class="col-actions">
+              <div class="actions">
+                <a class="icon-btn view-action" [routerLink]="['/tickets', t.id]" [attr.aria-label]="'View ' + t.id" title="View">
+                  <app-icon name="eye" [size]="16" />
+                </a>
+                @if (canEdit()(t)) {
+                  <a class="icon-btn" [routerLink]="['/tickets', t.id, 'edit']" [attr.aria-label]="'Edit ' + t.id" title="Edit">
+                    <app-icon name="pencil" [size]="16" />
+                  </a>
+                }
+                @if (canDelete()) {
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    [attr.aria-label]="'Delete ' + t.id"
+                    title="Delete"
+                    (click)="deleteTicket.emit(t)"
+                  >
+                    <app-icon name="trash" [size]="16" />
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>

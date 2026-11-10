@@ -1,0 +1,142 @@
+<div class="page narrow">
+  <a class="back" [routerLink]="isEdit() ? ['/tickets', id()] : ['/tickets']">
+    <app-icon name="arrow-left" [size]="16" />
+    {{ isEdit() ? 'Back to ticket' : 'Back to tickets' }}
+  </a>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="card card-body" aria-busy="true">
+        <span class="sr-only">Loading…</span>
+        <span class="skeleton" style="height: 28px; width: 40%"></span>
+        <span class="skeleton" style="height: 38px; margin-top: 24px"></span>
+        <span class="skeleton" style="height: 140px; margin-top: 16px"></span>
+      </div>
+    }
+    @case ('not-found') {
+      <div class="card">
+        <app-empty-state icon="search" title="Ticket not found" message="It may have been deleted or you don't have access to it.">
+          <a class="btn btn-secondary" routerLink="/tickets">Back to tickets</a>
+        </app-empty-state>
+      </div>
+    }
+    @case ('forbidden') {
+      <div class="card">
+        <app-empty-state icon="lock" title="This ticket can't be edited" message="Tickets can only be edited by support staff, or by the customer while the ticket is still open.">
+          <a class="btn btn-secondary" [routerLink]="['/tickets', id()]">View ticket</a>
+        </app-empty-state>
+      </div>
+    }
+    @case ('ready') {
+      <app-page-header
+        [title]="isEdit() ? 'Edit ' + id() : 'New ticket'"
+        [subtitle]="isEdit() ? 'Update the ticket details.' : 'Describe the problem and our support team will take it from here.'"
+      />
+
+      <form class="card" [formRoot]="form" [attr.aria-label]="isEdit() ? 'Edit ticket' : 'New ticket'">
+        <div class="card-body form-grid">
+          @if (serverError(); as error) {
+            <div class="alert" role="alert">
+              <app-icon name="circle-alert" [size]="16" />
+              {{ error }}
+            </div>
+          }
+
+          @if (isStaff() && !isEdit()) {
+            <div class="field">
+              <label class="field-label" for="t-customer">Customer</label>
+              <select
+                id="t-customer"
+                class="select"
+                [formField]="form.customerId"
+                aria-describedby="t-customer-error"
+                [attr.aria-invalid]="form.customerId().touched() && form.customerId().invalid()"
+              >
+                <option value="">Select a customer…</option>
+                @for (c of users.customers(); track c.id) {
+                  @if (c.active) {
+                    <option [value]="c.id">{{ c.name }}{{ c.company ? ' — ' + c.company : '' }}</option>
+                  }
+                }
+              </select>
+              <app-field-errors id="t-customer-error" [state]="form.customerId()" />
+            </div>
+          }
+
+          <div class="field">
+            <label class="field-label" for="t-title">Title</label>
+            <input
+              id="t-title"
+              class="input"
+              placeholder="Short summary, e.g. “VPN disconnects every 10 minutes”"
+              [formField]="form.title"
+              aria-describedby="t-title-error"
+              [attr.aria-invalid]="form.title().touched() && form.title().invalid()"
+            />
+            <app-field-errors id="t-title-error" [state]="form.title()" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="t-description">Description</label>
+            <textarea
+              id="t-description"
+              class="textarea"
+              rows="7"
+              placeholder="What happened? What did you expect? Any error messages or steps to reproduce?"
+              [formField]="form.description"
+              aria-describedby="t-description-hint t-description-error"
+              [attr.aria-invalid]="form.description().touched() && form.description().invalid()"
+            ></textarea>
+            <span id="t-description-hint" class="field-hint">{{ model().description.length }} / 4000 characters</span>
+            <app-field-errors id="t-description-error" [state]="form.description()" />
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="t-category">Category</label>
+              <select id="t-category" class="select" [formField]="form.category">
+                @for (c of categories; track c) {
+                  <option [value]="c">{{ categoryLabels[c] }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="t-priority">Priority</label>
+              <select id="t-priority" class="select" [formField]="form.priority" aria-describedby="t-priority-hint">
+                @for (p of priorities; track p) {
+                  <option [value]="p">{{ priorityLabels[p] }}</option>
+                }
+              </select>
+              <span id="t-priority-hint" class="field-hint">{{ slaHint() }}</span>
+            </div>
+          </div>
+
+          @if (canAssign()) {
+            <div class="field">
+              <label class="field-label" for="t-assignee">Assignee</label>
+              <select id="t-assignee" class="select" [formField]="form.assigneeId">
+                <option value="">Unassigned</option>
+                @for (a of users.activeAgents(); track a.id) {
+                  <option [value]="a.id">{{ a.name }}{{ a.jobTitle ? ' — ' + a.jobTitle : '' }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+
+        <div class="footer">
+          <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="form().submitting()">
+            @if (form().submitting()) {
+              <app-icon name="loader" [size]="16" class="spin" />
+              Saving…
+            } @else {
+              {{ isEdit() ? 'Save changes' : 'Create ticket' }}
+            }
+          </button>
+        </div>
+      </form>
+    }
+  }
+</div>

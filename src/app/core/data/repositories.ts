@@ -13,7 +13,9 @@ import { Repository } from './repository';
  * Конкретная реализация подключается в app.config.ts (provideLocalData / provideFirebaseData).
  */
 
-export abstract class TicketRepository extends Repository<Ticket> {}
+export abstract class TicketRepository extends Repository<Ticket> {
+  abstract listByCustomer(customerId: string): Promise<Ticket[]>;
+}
 
 export abstract class UserRepository extends Repository<User> {
   abstract findByEmail(email: string): Promise<User | null>;
@@ -32,6 +34,7 @@ export abstract class TicketEventRepository extends Repository<TicketEvent> {
 export abstract class NotificationRepository extends Repository<AppNotification> {
   abstract listByUser(userId: string): Promise<AppNotification[]>;
   abstract markAllRead(userId: string): Promise<void>;
+  abstract deleteByTicket(ticketId: string): Promise<void>;
 }
 
 export abstract class PreferencesRepository {

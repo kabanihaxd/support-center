@@ -27,6 +27,7 @@ describe('dates', () => {
     expect(formatDuration(5.25)).toBe('5.3h');
     expect(formatDuration(24)).toBe('1d');
     expect(formatDuration(50)).toBe('2d 2h');
+    expect(formatDuration(71.9)).toBe('3d');
   });
 });
 

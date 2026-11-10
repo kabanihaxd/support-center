@@ -1,0 +1,110 @@
+@let t = ticket();
+
+<section class="card" aria-labelledby="props-title">
+  <h2 id="props-title" class="card-header">Properties</h2>
+  <div class="card-body props">
+    <div class="field">
+      @if (auth.can('ticket.changeStatus')) {
+        <label class="field-label" for="p-status">Status</label>
+        <select id="p-status" class="select" [disabled]="store.isBusy('status')" (change)="onStatus($event)">
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="s === t.status">{{ statusLabels[s] }}</option>
+          }
+        </select>
+      } @else {
+        <span class="field-label">Status</span>
+        <app-status-badge [status]="t.status" />
+      }
+    </div>
+
+    <div class="field">
+      @if (auth.can('ticket.changePriority')) {
+        <label class="field-label" for="p-priority">Priority</label>
+        <select id="p-priority" class="select" [disabled]="store.isBusy('priority')" (change)="onPriority($event)">
+          @for (p of priorities; track p) {
+            <option [value]="p" [selected]="p === t.priority">{{ priorityLabels[p] }}</option>
+          }
+        </select>
+      } @else {
+        <span class="field-label">Priority</span>
+        <app-priority-badge [priority]="t.priority" />
+      }
+    </div>
+
+    <div class="field">
+      @if (auth.can('ticket.assign')) {
+        <label class="field-label" for="p-assignee">Assignee</label>
+        <select id="p-assignee" class="select" [disabled]="store.isBusy('assignee')" (change)="onAssignee($event)">
+          <option value="" [selected]="!t.assigneeId">Unassigned</option>
+          @for (a of users.agents(); track a.id) {
+            @if (a.active || a.id === t.assigneeId) {
+              <option [value]="a.id" [selected]="a.id === t.assigneeId">{{ a.name }}</option>
+            }
+          }
+        </select>
+        @if (!isMine()) {
+          <button type="button" class="btn btn-ghost btn-sm assign-me" [disabled]="store.isBusy('assignee')" (click)="assignToMe()">
+            <app-icon name="user-plus" [size]="14" />
+            Assign to me
+          </button>
+        }
+      } @else {
+        <span class="field-label">Assignee</span>
+        <span class="person">
+          @if (assignee(); as a) {
+            <app-avatar [name]="a.name" [size]="24" />
+            {{ a.name }}
+          } @else {
+            <span class="muted">Not assigned yet</span>
+          }
+        </span>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="details-title">
+  <h2 id="details-title" class="card-header">Details</h2>
+  <dl class="card-body details">
+    @if (customer(); as c) {
+      <div class="customer">
+        <dt>Customer</dt>
+        <dd class="person">
+          <app-avatar [name]="c.name" [size]="32" />
+          <span class="who">
+            <span class="name">{{ c.name }}</span>
+            <span class="muted small">{{ c.email }}</span>
+            @if (c.company) {
+              <span class="muted small">{{ c.company }}</span>
+            }
+          </span>
+        </dd>
+      </div>
+    }
+    <div>
+      <dt>Category</dt>
+      <dd>{{ categoryLabels[t.category] }}</dd>
+    </div>
+    <div>
+      <dt>Created</dt>
+      <dd><time [attr.datetime]="t.createdAt">{{ t.createdAt | date: 'MMM d, y, HH:mm' }}</time></dd>
+    </div>
+    <div>
+      <dt>Last updated</dt>
+      <dd><time [attr.datetime]="t.updatedAt">{{ t.updatedAt | date: 'MMM d, y, HH:mm' }}</time></dd>
+    </div>
+    <div>
+      <dt>SLA due</dt>
+      <dd class="stack">
+        <time [attr.datetime]="t.dueAt">{{ t.dueAt | date: 'MMM d, y, HH:mm' }}</time>
+        <app-sla-badge [ticket]="t" />
+      </dd>
+    </div>
+    @if (t.resolvedAt) {
+      <div>
+        <dt>Resolved</dt>
+        <dd><time [attr.datetime]="t.resolvedAt">{{ t.resolvedAt | date: 'MMM d, y, HH:mm' }}</time></dd>
+      </div>
+    }
+  </dl>
+</section>

@@ -26,8 +26,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', title: 'Dashboard', loadComponent: placeholder },
-      { path: 'tickets', title: 'Tickets', loadComponent: placeholder },
-      { path: 'tickets/:id', title: 'Ticket', loadComponent: placeholder },
+      { path: 'tickets', loadChildren: () => import('@features/tickets/tickets.routes').then((m) => m.TICKET_ROUTES) },
       { path: 'customers', title: 'Customers', data: { permission: 'customer.view' }, loadComponent: placeholder },
       { path: 'agents', title: 'Agents', data: { permission: 'agent.view' }, loadComponent: placeholder },
       { path: 'reports', title: 'Reports', data: { permission: 'reports.view' }, loadComponent: placeholder },

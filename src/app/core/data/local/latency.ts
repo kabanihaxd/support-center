@@ -7,7 +7,7 @@ export interface Latency {
 
 /** Имитация сетевой задержки mock-бэкенда (в тестах — 0) */
 export const DATA_LATENCY = new InjectionToken<Latency>('DATA_LATENCY', {
-  factory: () => ({ min: 250, max: 600 }),
+  factory: () => ({ min: 150, max: 350 }),
 });
 
 export function simulateLatency({ min, max }: Latency): Promise<void> {

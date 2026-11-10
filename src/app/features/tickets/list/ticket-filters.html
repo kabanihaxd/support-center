@@ -1,0 +1,74 @@
+<div class="search">
+  <label for="ticket-search" class="sr-only">Search tickets</label>
+  <app-icon name="search" [size]="16" class="search-icon" />
+  <input
+    id="ticket-search"
+    class="input"
+    type="search"
+    placeholder="Search by ID, title or person…"
+    autocomplete="off"
+    [value]="search()"
+    (input)="onSearch($event)"
+  />
+</div>
+
+<div class="selects">
+  <label class="sr-only" for="filter-status">Status</label>
+  <select id="filter-status" class="select" [value]="query().status" (change)="onSelect('status', $event)">
+    <option value="" [selected]="!query().status">All statuses</option>
+    <option value="active" [selected]="query().status === 'active'">Active (not resolved)</option>
+    @for (s of statuses; track s) {
+      <option [value]="s" [selected]="query().status === s">{{ statusLabels[s] }}</option>
+    }
+  </select>
+
+  <label class="sr-only" for="filter-priority">Priority</label>
+  <select id="filter-priority" class="select" [value]="query().priority" (change)="onSelect('priority', $event)">
+    <option value="" [selected]="!query().priority">All priorities</option>
+    @for (p of priorities; track p) {
+      <option [value]="p" [selected]="query().priority === p">{{ priorityLabels[p] }}</option>
+    }
+  </select>
+
+  <label class="sr-only" for="filter-category">Category</label>
+  <select id="filter-category" class="select" [value]="query().category" (change)="onSelect('category', $event)">
+    <option value="" [selected]="!query().category">All categories</option>
+    @for (c of categories; track c) {
+      <option [value]="c" [selected]="query().category === c">{{ categoryLabels[c] }}</option>
+    }
+  </select>
+
+  @if (showAssignee()) {
+    <label class="sr-only" for="filter-assignee">Assignee</label>
+    <select id="filter-assignee" class="select" [value]="query().assignee" (change)="onSelect('assignee', $event)">
+      <option value="" [selected]="!query().assignee">All assignees</option>
+      <option value="me" [selected]="query().assignee === 'me'">Assigned to me</option>
+      <option value="unassigned" [selected]="query().assignee === 'unassigned'">Unassigned</option>
+      @for (a of agents(); track a.id) {
+        <option [value]="a.id" [selected]="query().assignee === a.id">{{ a.name }}</option>
+      }
+    </select>
+  }
+
+  <!-- На телефоне заголовки таблицы скрыты — сортировка через select -->
+  <span class="mobile-sort">
+    <label class="sr-only" for="filter-sort">Sort by</label>
+    <select id="filter-sort" class="select" (change)="onSort($event)">
+      @for (o of sortOptions; track o.value) {
+        <option [value]="o.value" [selected]="o.value === query().sort + ':' + query().dir">{{ o.label }}</option>
+      }
+    </select>
+  </span>
+
+  <label class="checkbox overdue">
+    <input type="checkbox" [checked]="query().overdueOnly" (change)="onOverdue($event)" />
+    Overdue only
+  </label>
+
+  @if (hasFilters()) {
+    <button type="button" class="btn btn-ghost btn-sm" (click)="clear()">
+      <app-icon name="filter-x" [size]="16" />
+      Clear filters
+    </button>
+  }
+</div>

@@ -1,0 +1,79 @@
+<div class="page">
+  <app-page-header
+    [title]="isCustomer() ? 'My Tickets' : 'Tickets'"
+    [subtitle]="isCustomer() ? 'Track the status of your support requests.' : 'All support requests across customers.'"
+  >
+    @if (auth.can('ticket.create')) {
+      <a class="btn btn-primary" routerLink="/tickets/new">
+        <app-icon name="plus" [size]="16" />
+        New ticket
+      </a>
+    }
+  </app-page-header>
+
+  <section class="card" aria-label="Tickets list">
+    <app-ticket-filters
+      [query]="query()"
+      [agents]="users.agents()"
+      [showAssignee]="!isCustomer()"
+      (changed)="update($event)"
+    />
+
+    @if (service.error(); as error) {
+      <app-empty-state icon="circle-alert" tone="error" title="Couldn't load tickets" [message]="error">
+        <button type="button" class="btn btn-secondary" (click)="reload()">
+          <app-icon name="reset" [size]="16" />
+          Try again
+        </button>
+      </app-empty-state>
+    } @else if (!loading() && result().total === 0) {
+      @if (service.tickets().length === 0) {
+        <app-empty-state
+          icon="ticket"
+          title="No tickets yet"
+          [message]="isCustomer() ? 'When you need help, create a ticket and our team will get back to you.' : 'New support requests will appear here.'"
+        >
+          @if (auth.can('ticket.create')) {
+            <a class="btn btn-primary" routerLink="/tickets/new">
+              <app-icon name="plus" [size]="16" />
+              Create a ticket
+            </a>
+          }
+        </app-empty-state>
+      } @else {
+        <app-empty-state icon="search" title="No matching tickets" message="Try adjusting your search or filters.">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="update({ search: '', status: '', priority: '', category: '', assignee: '', overdueOnly: false })"
+          >
+            Clear filters
+          </button>
+        </app-empty-state>
+      }
+    } @else {
+      <app-tickets-table
+        [tickets]="result().items"
+        [usersById]="users.byId()"
+        [sort]="query().sort"
+        [dir]="query().dir"
+        [loading]="loading()"
+        [showCustomer]="!isCustomer()"
+        [canEdit]="canEdit()"
+        [canDelete]="auth.can('ticket.delete')"
+        (sortChange)="onSort($event)"
+        (deleteTicket)="onDelete($event)"
+      />
+      @if (!loading()) {
+        <app-pagination
+          [page]="result().page"
+          [pageSize]="query().pageSize"
+          [total]="result().total"
+          [pageSizes]="pageSizes"
+          (pageChange)="update({ page: $event })"
+          (pageSizeChange)="update({ pageSize: $event })"
+        />
+      }
+    }
+  </section>
+</div>

@@ -28,6 +28,11 @@
   width: 100%;
 }
 
+/* Элементы grid не должны раздвигаться шире экрана из-за широких таблиц */
+.page > * {
+  min-width: 0;
+}
+
 @media (max-width: 640px) {
   .page {
     padding: var(--space-4);

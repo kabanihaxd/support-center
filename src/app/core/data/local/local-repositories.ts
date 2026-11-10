@@ -20,6 +20,11 @@ export class LocalTicketRepository extends LocalRepository<Ticket> implements Ti
   protected generateId(existing: readonly Ticket[]): string {
     return nextTicketId(existing.map((t) => t.id));
   }
+
+  async listByCustomer(customerId: string): Promise<Ticket[]> {
+    await this.delay();
+    return structuredClone(this.readAll().filter((t) => t.customerId === customerId));
+  }
 }
 
 @Injectable()
@@ -93,6 +98,10 @@ export class LocalNotificationRepository
   async markAllRead(userId: string): Promise<void> {
     await this.delay();
     this.writeAll(this.readAll().map((n) => (n.userId === userId ? { ...n, read: true } : n)));
+  }
+
+  async deleteByTicket(ticketId: string): Promise<void> {
+    this.writeAll(this.readAll().filter((n) => n.ticketId !== ticketId));
   }
 }
 
