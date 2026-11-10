@@ -131,3 +131,15 @@
   border: 0;
   margin: 0;
 }
+
+/* Компактные таблицы (Settings → Appearance) */
+[data-density='compact'] .table th,
+[data-density='compact'] .table td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  line-height: 1.35;
+}
+
+[data-density='compact'] .table {
+  font-size: var(--fs-sm);
+}

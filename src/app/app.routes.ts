@@ -2,9 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard, permissionGuard } from '@core/guards/auth.guards';
 import { Shell } from '@layout/shell/shell';
 
-/** Временная заглушка для разделов следующих этапов */
-const placeholder = () => import('@features/placeholder/placeholder.page').then((m) => m.PlaceholderPage);
-
 export const routes: Routes = [
   {
     path: 'login',
@@ -71,7 +68,11 @@ export const routes: Routes = [
         data: { permission: 'reports.view' },
         loadComponent: () => import('@features/reports/reports.page').then((m) => m.ReportsPage),
       },
-      { path: 'settings', title: 'Settings', loadComponent: placeholder },
+      {
+        path: 'settings',
+        title: 'Settings',
+        loadComponent: () => import('@features/settings/settings.page').then((m) => m.SettingsPage),
+      },
       {
         path: '**',
         title: 'Page not found',

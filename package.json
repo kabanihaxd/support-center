@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test --watch=false",
+    "deploy": "ng build && npx firebase-tools deploy --only hosting"
   },
   "private": true,
   "packageManager": "npm@11.12.1",

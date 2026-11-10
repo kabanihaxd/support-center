@@ -1,5 +1,6 @@
 import { Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { PreferencesService } from '@core/services/preferences.service';
 import { filter } from 'rxjs';
 import { Header } from '../header/header';
 import { Sidebar } from '../sidebar/sidebar';
@@ -61,6 +62,8 @@ import { Sidebar } from '../sidebar/sidebar';
 export class Shell {
   private readonly main = viewChild.required<ElementRef<HTMLElement>>('main');
   protected readonly navOpen = signal(false);
+  // Создаём сервис настроек сразу: он применяет плотность таблиц ко всему приложению
+  private readonly preferences = inject(PreferencesService);
 
   constructor() {
     // После перехода закрываем мобильное меню
