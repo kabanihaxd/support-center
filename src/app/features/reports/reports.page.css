@@ -1,0 +1,137 @@
+.period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.period-label {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: var(--space-1);
+}
+
+.period-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.period-btn:hover {
+  background: var(--surface-hover);
+}
+
+.period-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+/* Как у .btn-primary: в тёмной теме фон темнее, чтобы белый текст был контрастным */
+:host-context([data-theme='dark']) .period-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-4);
+}
+
+.stat-link {
+  display: grid;
+  border-radius: var(--radius-lg);
+  color: inherit;
+  text-decoration: none;
+}
+
+.stat-link:hover app-stat-card {
+  border-color: var(--border-strong);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.grid > * {
+  min-width: 0;
+}
+
+.grid-main {
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+.grid-thirds {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+h2 {
+  font-size: var(--fs-md);
+}
+
+.sub {
+  font-size: var(--fs-sm);
+}
+
+.card-body {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.chart-skeleton {
+  height: 220px;
+}
+
+.targets {
+  font-size: var(--fs-xs);
+}
+
+.loading {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+}
+
+.who {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.who:hover {
+  text-decoration: underline;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate {
+  font-weight: 600;
+}
+
+.rate.low,
+.danger {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .grid-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

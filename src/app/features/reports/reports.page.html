@@ -1,0 +1,161 @@
+<div class="page">
+  <app-page-header title="Reports" subtitle="Support performance by period: volume, SLA, resolution time and team output.">
+    <button type="button" class="btn btn-secondary" [disabled]="loading()" (click)="exportTickets()">
+      <app-icon name="download" [size]="16" />
+      Export tickets (CSV)
+    </button>
+  </app-page-header>
+
+  <div class="period" role="group" aria-label="Reporting period">
+    <span class="period-label" aria-hidden="true">Period</span>
+    @for (p of periods; track p.value) {
+      <button
+        type="button"
+        class="period-btn"
+        [class.active]="current() === p.value"
+        [attr.aria-pressed]="current() === p.value"
+        (click)="setPeriod(p.value)"
+      >
+        Last {{ p.label }}
+      </button>
+    }
+  </div>
+
+  @if (service.error(); as error) {
+    <section class="card">
+      <app-empty-state icon="circle-alert" tone="error" title="Couldn't load reports" [message]="error">
+        <button type="button" class="btn btn-secondary" (click)="reload()">
+          <app-icon name="reset" [size]="16" />
+          Try again
+        </button>
+      </app-empty-state>
+    </section>
+  } @else {
+    <section class="stats" [attr.aria-label]="'Summary for the last ' + currentLabel()">
+      <app-stat-card label="Created" [value]="summary().created" icon="inbox" [hint]="summary().stillOpen + ' still active'" [loading]="loading()" />
+      <app-stat-card label="Resolved" [value]="summary().resolved" icon="circle-check" tone="green" hint="Resolved in this period" [loading]="loading()" />
+      <app-stat-card label="Avg. resolution" [value]="summary().avg" icon="timer" tone="amber" hint="Created → resolved" [loading]="loading()" />
+      <app-stat-card label="SLA met" [value]="summary().sla" icon="shield" tone="violet" hint="Resolved before the deadline" [loading]="loading()" />
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ overdue: '1' }">
+        <app-stat-card label="Overdue now" [value]="summary().overdueNow" icon="warning" tone="red" hint="Active past SLA deadline" [loading]="loading()" />
+      </a>
+    </section>
+
+    <div class="grid grid-main">
+      <app-volume-trend
+        [heading]="'Created vs resolved, last ' + currentLabel()"
+        [tickets]="service.tickets()"
+        [range]="range()"
+        [granularity]="granularity()"
+        [loading]="loading()"
+        [height]="280"
+      />
+      <app-status-breakdown heading="Current status of new tickets" [tickets]="split().created" [loading]="loading()" />
+    </div>
+
+    <div class="grid grid-thirds">
+      <section class="card" aria-labelledby="priority-title">
+        <div class="card-header">
+          <h2 id="priority-title">By priority</h2>
+        </div>
+        <div class="card-body">
+          @if (loading()) {
+            <span class="skeleton chart-skeleton"></span>
+          } @else {
+            <app-chart kind="bar" label="Tickets created by priority" categoryLabel="Priority" [labels]="priorityLabels" [series]="prioritySeries()" [height]="220" />
+          }
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="category-title">
+        <div class="card-header">
+          <h2 id="category-title">By category</h2>
+        </div>
+        <div class="card-body">
+          @if (loading()) {
+            <span class="skeleton chart-skeleton"></span>
+          } @else {
+            <app-chart kind="hbar" label="Tickets created by category" categoryLabel="Category" [labels]="categoryLabels" [series]="categorySeries()" [height]="220" />
+          }
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="resolution-title">
+        <div class="card-header">
+          <div>
+            <h2 id="resolution-title">Resolution time</h2>
+            <p class="muted sub">Average hours by priority</p>
+          </div>
+        </div>
+        <div class="card-body">
+          @if (loading()) {
+            <span class="skeleton chart-skeleton"></span>
+          } @else {
+            <app-chart kind="bar" label="Average resolution time by priority, in hours" categoryLabel="Priority" unit="h" [labels]="priorityLabels" [series]="resolutionSeries()" [height]="196" />
+            <p class="muted targets">SLA targets: {{ slaTargets }}</p>
+          }
+        </div>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="perf-title">
+      <div class="card-header">
+        <div>
+          <h2 id="perf-title">Agent performance</h2>
+          <p class="muted sub">Assigned and resolved in the last {{ currentLabel() }}; active and overdue — right now</p>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" [disabled]="loading() || !performance().length" (click)="exportPerformance()">
+          <app-icon name="download" [size]="16" />
+          Export CSV
+        </button>
+      </div>
+      @if (loading()) {
+        <div class="loading" aria-busy="true">
+          <span class="sr-only">Loading agent performance…</span>
+          @for (row of [1, 2, 3, 4]; track row) {
+            <span class="skeleton" style="height: 44px"></span>
+          }
+        </div>
+      } @else if (!performance().length) {
+        <app-empty-state icon="headset" title="No active agents" message="Add team members on the Agents page." />
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">Agent performance for the last {{ currentLabel() }}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Agent</th>
+                <th scope="col" class="num">Assigned</th>
+                <th scope="col" class="num">Resolved</th>
+                <th scope="col" class="num">Avg. resolution</th>
+                <th scope="col" class="num">SLA met</th>
+                <th scope="col" class="num">Active now</th>
+                <th scope="col" class="num">Overdue now</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of performance(); track row.agent.id) {
+                <tr>
+                  <td>
+                    <a class="who" [routerLink]="['/agents', row.agent.id]">
+                      <app-avatar [name]="row.agent.name" [size]="28" />
+                      {{ row.agent.name }}
+                    </a>
+                  </td>
+                  <td class="num">{{ row.assigned }}</td>
+                  <td class="num">{{ row.resolved }}</td>
+                  <td class="num">{{ duration(row.avgResolutionHours) }}</td>
+                  <td class="num">
+                    <span class="rate" [class.low]="row.slaRate !== null && row.slaRate < 0.8">{{ percent(row.slaRate) }}</span>
+                  </td>
+                  <td class="num">{{ row.active }}</td>
+                  <td class="num" [class.danger]="row.overdue > 0">{{ row.overdue }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</div>

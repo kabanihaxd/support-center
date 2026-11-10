@@ -1,10 +1,12 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { canEditTicket } from '@core/auth/permissions';
+import { ticketsToCsv } from '@core/domain/csv-exports';
 import { errorMessage } from '@core/errors/app-error';
 import { AuthService } from '@core/services/auth.service';
 import { Clock } from '@core/services/clock';
 import { ConfirmService } from '@core/services/confirm.service';
+import { FileDownloadService } from '@core/services/file-download.service';
 import { TicketService } from '@core/services/ticket.service';
 import { ToastService } from '@core/services/toast.service';
 import { UserDirectory } from '@core/services/user-directory.service';
@@ -13,8 +15,19 @@ import { Icon } from '@shared/components/icon/icon';
 import { PageHeader } from '@shared/components/page-header/page-header';
 import { Pagination } from '@shared/components/pagination/pagination';
 import { Ticket } from '@shared/models';
+import { csvFileName } from '@shared/utils/csv';
 import { TicketFilters } from './ticket-filters';
-import { PAGE_SIZES, parseTicketQuery, queryTickets, SortField, TicketQuery, toQueryParams } from './ticket-query';
+import {
+  filterTickets,
+  PAGE_SIZES,
+  parseTicketQuery,
+  QueryContext,
+  queryTickets,
+  SortField,
+  sortTickets,
+  TicketQuery,
+  toQueryParams,
+} from './ticket-query';
 import { TicketsTable } from './tickets-table';
 
 /** Список тикетов. Состояние фильтров/сортировки/страницы хранится в URL */
@@ -31,6 +44,7 @@ export class TicketsListPage {
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
   private readonly clock = inject(Clock);
+  private readonly downloads = inject(FileDownloadService);
 
   // Query-параметры URL (withComponentInputBinding)
   readonly q = input<string>();
@@ -60,13 +74,11 @@ export class TicketsListPage {
     }),
   );
 
-  protected readonly result = computed(() =>
-    queryTickets(this.service.tickets(), this.query(), {
-      usersById: this.users.byId(),
-      currentUserId: this.auth.user()?.id ?? null,
-      now: this.clock.now(),
-    }),
-  );
+  private context(): QueryContext {
+    return { usersById: this.users.byId(), currentUserId: this.auth.user()?.id ?? null, now: this.clock.now() };
+  }
+
+  protected readonly result = computed(() => queryTickets(this.service.tickets(), this.query(), this.context()));
 
   protected readonly isCustomer = computed(() => this.auth.role() === 'customer');
   protected readonly loading = computed(() => !this.service.loaded() && !this.service.error());
@@ -93,6 +105,15 @@ export class TicketsListPage {
     const q = this.query();
     const dir = q.sort === field && q.dir === 'desc' ? 'asc' : q.sort === field ? 'desc' : field === 'createdAt' || field === 'priority' ? 'desc' : 'asc';
     this.update({ sort: field, dir, page: q.page });
+  }
+
+  /** Выгружает все тикеты текущей выборки (с фильтрами и сортировкой, без пагинации) */
+  protected exportCsv(): void {
+    const ctx = this.context();
+    const q = this.query();
+    const tickets = sortTickets(filterTickets(this.service.tickets(), q, ctx), q.sort, q.dir, ctx);
+    this.downloads.download(csvFileName('tickets', ctx.now), ticketsToCsv(tickets, ctx.usersById, ctx.now));
+    this.toast.success(`Exported ${tickets.length} ${tickets.length === 1 ? 'ticket' : 'tickets'}.`);
   }
 
   protected async onDelete(ticket: Ticket): Promise<void> {

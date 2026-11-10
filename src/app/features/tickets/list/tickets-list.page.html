@@ -3,6 +3,10 @@
     [title]="isCustomer() ? 'My Tickets' : 'Tickets'"
     [subtitle]="isCustomer() ? 'Track the status of your support requests.' : 'All support requests across customers.'"
   >
+    <button type="button" class="btn btn-secondary" [disabled]="loading() || !result().total" (click)="exportCsv()">
+      <app-icon name="download" [size]="16" />
+      Export CSV
+    </button>
     @if (auth.can('ticket.create')) {
       <a class="btn btn-primary" routerLink="/tickets/new">
         <app-icon name="plus" [size]="16" />

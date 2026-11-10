@@ -1,0 +1,122 @@
+<div class="page">
+  @if (isCustomer()) {
+    <app-page-header [title]="greeting()" subtitle="Here's an overview of your support requests.">
+      <a class="btn btn-primary" routerLink="/tickets/new">
+        <app-icon name="plus" [size]="16" />
+        New ticket
+      </a>
+    </app-page-header>
+  } @else {
+    <app-page-header [title]="greeting()" subtitle="Here's what's happening in support today.">
+      @if (auth.can('reports.view')) {
+        <a class="btn btn-secondary" routerLink="/reports">
+          <app-icon name="chart" [size]="16" />
+          Reports
+        </a>
+      }
+      <a class="btn btn-primary" routerLink="/tickets/new">
+        <app-icon name="plus" [size]="16" />
+        New ticket
+      </a>
+    </app-page-header>
+  }
+
+  @if (service.error(); as error) {
+    <section class="card">
+      <app-empty-state icon="circle-alert" tone="error" title="Couldn't load the dashboard" [message]="error">
+        <button type="button" class="btn btn-secondary" (click)="reload()">
+          <app-icon name="reset" [size]="16" />
+          Try again
+        </button>
+      </app-empty-state>
+    </section>
+  } @else if (isCustomer()) {
+    <section class="stats" aria-label="Your ticket summary">
+      <a class="stat-link" routerLink="/tickets">
+        <app-stat-card label="All requests" [value]="stats().total" icon="ticket" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ status: 'active' }">
+        <app-stat-card label="Active" [value]="stats().open + stats().inProgress + stats().pending" icon="activity" tone="violet" hint="Not resolved yet" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ status: 'pending' }">
+        <app-stat-card label="Awaiting your reply" [value]="stats().pending" icon="message" tone="amber" [loading]="loading()" />
+      </a>
+      <app-stat-card label="Resolved" [value]="stats().resolved + stats().closed" icon="circle-check" tone="green" [loading]="loading()" />
+    </section>
+
+    <div class="grid grid-main">
+      <app-recent-tickets
+        heading="Your recent tickets"
+        emptyMessage="When you need help, create a ticket and our team will get back to you."
+        [tickets]="recent()"
+        [usersById]="users.byId()"
+        [showCustomer]="false"
+        [loading]="loading()"
+      />
+      <div class="side">
+        <app-status-breakdown heading="Your tickets by status" [tickets]="service.tickets()" [loading]="loading()" />
+        <section class="card" aria-labelledby="targets-title">
+          <div class="card-header">
+            <h2 id="targets-title">Resolution targets</h2>
+          </div>
+          <div class="card-body">
+            <p class="muted small">We aim to resolve requests within these times, depending on priority.</p>
+            <dl class="targets">
+              @for (t of targets; track t.priority) {
+                <div>
+                  <dt>{{ t.label }}</dt>
+                  <dd>{{ t.time }}</dd>
+                </div>
+              }
+            </dl>
+          </div>
+        </section>
+      </div>
+    </div>
+  } @else {
+    <section class="stats stats-staff" aria-label="Ticket summary">
+      <a class="stat-link" routerLink="/tickets">
+        <app-stat-card label="Total tickets" [value]="stats().total" icon="ticket" tone="gray" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ status: 'open' }">
+        <app-stat-card label="Open" [value]="stats().open" icon="inbox" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ status: 'in_progress' }">
+        <app-stat-card label="In progress" [value]="stats().inProgress" icon="activity" tone="violet" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ status: 'resolved' }">
+        <app-stat-card label="Resolved" [value]="stats().resolved" icon="circle-check" tone="green" [hint]="stats().closed + ' more closed'" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ priority: 'critical', status: 'active' }">
+        <app-stat-card label="Critical" [value]="stats().critical" icon="flag" tone="red" hint="Active, critical priority" [loading]="loading()" />
+      </a>
+      <a class="stat-link" routerLink="/tickets" [queryParams]="{ overdue: '1' }">
+        <app-stat-card label="Overdue" [value]="stats().overdue" icon="warning" tone="red" hint="SLA deadline passed" [loading]="loading()" />
+      </a>
+      <app-stat-card label="Avg. resolution" [value]="avgResolution()" icon="timer" tone="amber" hint="Created → resolved" [loading]="loading()" />
+    </section>
+
+    <div class="grid grid-main">
+      <app-volume-trend heading="Ticket volume, last 30 days" [tickets]="service.tickets()" [range]="range()" [loading]="loading()" />
+      <app-status-breakdown [tickets]="service.tickets()" [loading]="loading()" />
+    </div>
+
+    <div class="grid grid-half">
+      @if (auth.role() === 'agent') {
+        <app-my-queue [tickets]="service.tickets()" [userId]="userId()" [loading]="loading()" />
+      } @else {
+        <app-recent-tickets [tickets]="recent()" [usersById]="users.byId()" [loading]="loading() || !users.loaded()" />
+      }
+      <app-team-stats
+        [workloads]="workloads()"
+        [loading]="loading() || !users.loaded()"
+        [linkProfiles]="auth.can('agent.view')"
+        [currentUserId]="userId()"
+      />
+    </div>
+
+    @if (auth.role() === 'agent') {
+      <app-recent-tickets [tickets]="recent()" [usersById]="users.byId()" [loading]="loading() || !users.loaded()" />
+    }
+  }
+</div>

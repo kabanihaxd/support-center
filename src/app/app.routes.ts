@@ -25,7 +25,11 @@ export const routes: Routes = [
     canActivateChild: [permissionGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-      { path: 'dashboard', title: 'Dashboard', loadComponent: placeholder },
+      {
+        path: 'dashboard',
+        title: 'Dashboard',
+        loadComponent: () => import('@features/dashboard/dashboard.page').then((m) => m.DashboardPage),
+      },
       { path: 'tickets', loadChildren: () => import('@features/tickets/tickets.routes').then((m) => m.TICKET_ROUTES) },
       {
         path: 'customers',
@@ -61,7 +65,12 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'reports', title: 'Reports', data: { permission: 'reports.view' }, loadComponent: placeholder },
+      {
+        path: 'reports',
+        title: 'Reports',
+        data: { permission: 'reports.view' },
+        loadComponent: () => import('@features/reports/reports.page').then((m) => m.ReportsPage),
+      },
       { path: 'settings', title: 'Settings', loadComponent: placeholder },
       {
         path: '**',
