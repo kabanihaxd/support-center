@@ -38,7 +38,7 @@ import { Icon } from '../icon/icon';
               } @else {
                 <button
                   type="button"
-                  class="page"
+                  class="page-btn"
                   [class.current]="item === page()"
                   [attr.aria-current]="item === page() ? 'page' : null"
                   [attr.aria-label]="'Page ' + item"
@@ -77,7 +77,9 @@ import { Icon } from '../icon/icon';
     ul { display: flex; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
     .icon-btn { width: 32px; height: 32px; }
     .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .page {
+    .page-btn {
+      display: inline-grid;
+      place-items: center;
       min-width: 32px;
       height: 32px;
       padding: 0 6px;
@@ -89,9 +91,9 @@ import { Icon } from '../icon/icon';
       font-weight: 500;
       cursor: pointer;
     }
-    .page:hover { background: var(--surface-2); color: var(--text); }
-    .page:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-    .page.current { background: var(--primary); color: var(--on-primary); }
+    .page-btn:hover { background: var(--surface-2); color: var(--text); }
+    .page-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    .page-btn.current { background: var(--primary); color: var(--on-primary); }
     .gap { padding: 0 4px; }
   `,
 })
